@@ -1,0 +1,4 @@
+# The built binary, at the repo root only — an unanchored `autoship` would also
+# match the cmd/autoship/ package directory and quietly drop it from the repo.
+/autoship
+/autoship.exe

@@ -1,0 +1,45 @@
+# autoship configuration. Lives in the Android repo, is versioned, and holds
+# no secrets — see docs/scheduling.md for those.
+
+repo:
+  path: C:\Users\vm899\repos\ExpenseTracker
+  branch: main
+  remote: origin
+
+app:
+  module: ":app"
+  package: com.zeta.expensetracker
+  gradle_file: app/build.gradle.kts
+
+gradle:
+  unit_tests:  ":app:testDebugUnitTest"
+  lint:        ":app:lintRelease"
+  bundle:      ":app:bundleRelease"
+  apk:         ":app:assembleRelease"   # optional, for the local archive only
+
+ui_validation:
+  mode: jvm                # jvm | emulator | none
+  task: ":app:testDebugUnitTest --tests '*ScreenRenderTest'"
+
+play:
+  track: alpha             # closed testing
+  rollout: draft           # draft | completed — start as draft
+  update_listing_on: minor # never | minor | any
+  listing_file: docs/release/play_store_listing.md
+
+artifacts:
+  root: ${USERPROFILE}\Documents\ExpenseTracker
+  screenshots_from: docs/release/screenshots
+
+notes:
+  # Ordered strategy chain. First provider that yields notes wins.
+  #   file    — read docs/release/notes/<version>.txt from the repo
+  #   commits — render from conventional-commit subjects since the last tag
+  source: [file]           # e.g. [file, commits] to fall back instead of halting
+  file_path: docs/release/notes/${version}.txt
+  commit_template: ""      # optional path to a text/template; blank uses the built-in
+  on_exhausted: halt       # halt | skip — behaviour when no provider yields
+
+# How long a run may take before its lock is considered stale, and the default
+# ceiling on a single run.
+max_run_duration: 45m
