@@ -24,7 +24,7 @@ func TestLoad_ValidFile(t *testing.T) {
 	if got, want := strings.Join(cfg.Notes.Source, ","), "file"; got != want {
 		t.Errorf("notes.source = %v, want [file]", cfg.Notes.Source)
 	}
-	if got, want := cfg.App.Package, "com.zeta.expensetracker"; got != want {
+	if got, want := cfg.App.Package, "com.example.myapp"; got != want {
 		t.Errorf("app.package = %q, want %q", got, want)
 	}
 }

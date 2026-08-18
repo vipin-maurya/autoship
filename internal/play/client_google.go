@@ -4,8 +4,11 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"regexp"
+	"strings"
 
 	androidpublisher "google.golang.org/api/androidpublisher/v3"
+	"google.golang.org/api/googleapi"
 	"google.golang.org/api/option"
 )
 
@@ -61,7 +64,7 @@ func (c *googleClient) UploadBundle(ctx context.Context, editID, path string) (i
 		}
 		defer f.Close()
 
-		bundle, err := c.svc.Edits.Bundles.Upload(c.pkg, editID).Media(f).Context(ctx).Do()
+		bundle, err := c.svc.Edits.Bundles.Upload(c.pkg, editID).Media(f, googleapi.ContentType("application/octet-stream")).Context(ctx).Do()
 		if err != nil {
 			return err
 		}
@@ -71,10 +74,19 @@ func (c *googleClient) UploadBundle(ctx context.Context, editID, path string) (i
 	return code, err
 }
 
+var langTagPattern = regexp.MustCompile(`(?s)^\s*<([a-zA-Z]{2,3}(?:-[a-zA-Z0-9]+)*)>\s*(.*?)\s*</\1>\s*$`)
+
+func cleanNotes(text string) string {
+	if m := langTagPattern.FindStringSubmatch(text); m != nil {
+		return strings.TrimSpace(m[2])
+	}
+	return strings.TrimSpace(text)
+}
+
 func (c *googleClient) TrackUpdate(ctx context.Context, editID string, t Track) error {
 	notes := make([]*androidpublisher.LocalizedText, 0, len(t.ReleaseNotes))
 	for lang, text := range t.ReleaseNotes {
-		notes = append(notes, &androidpublisher.LocalizedText{Language: lang, Text: text})
+		notes = append(notes, &androidpublisher.LocalizedText{Language: lang, Text: cleanNotes(text)})
 	}
 	payload := &androidpublisher.Track{
 		Track: t.Name,

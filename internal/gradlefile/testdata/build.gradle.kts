@@ -4,11 +4,11 @@ plugins {
 }
 
 android {
-    namespace = "com.zeta.expensetracker"
+    namespace = "com.example.myapp"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.zeta.expensetracker"
+        applicationId = "com.example.myapp"
         minSdk = 26
         targetSdk = 35
         versionCode = 7

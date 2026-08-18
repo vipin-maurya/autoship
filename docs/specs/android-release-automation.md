@@ -112,13 +112,13 @@ real work, and the orchestrator's footprint is rounding error against it. What G
 
 ```yaml
 repo:
-  path: C:\Users\vm899\repos\ExpenseTracker
+  path: C:\Users\you\repos\MyAndroidApp
   branch: main
   remote: origin
 
 app:
   module: ":app"
-  package: com.zeta.expensetracker
+  package: com.example.myapp
   gradle_file: app/build.gradle.kts
 
 gradle:
@@ -137,7 +137,7 @@ play:
   update_listing_on: minor # never | minor | any
 
 artifacts:
-  root: ${USERPROFILE}\Documents\ExpenseTracker
+  root: ${USERPROFILE}\Documents\MyAndroidApp
   screenshots_from: docs/release/screenshots
 
 notes:
@@ -398,5 +398,5 @@ Defaults are chosen so the spec is complete without answers; these are the ones 
 | Q3 | UI validation = JVM Compose tests, or is a real emulator non-negotiable? | **JVM (Robolectric)** |
 | Q4 | Play upload via Go API client, or delegate S5 to `gradle-play-publisher`? | **Decided — Go API client.** Keeps the app repo free of publishing config and keeps auth, retry, and edit-abort behaviour (§10) under our control rather than a plugin's. |
 | Q5 | Does a new SHA on `main` auto-clear a halt, or is `autoship resume` always required? | **Auto-clear on new SHA** — a fix push is the natural retry signal |
-| Q6 | Which app repo is target #1, and is `main` protected / does it receive direct pushes? | **ExpenseTracker**, assumed direct pushes allowed (affects §11) |
+| Q6 | Which app repo is target #1, and is `main` protected / does it receive direct pushes? | **MyAndroidApp**, assumed direct pushes allowed (affects §11) |
 | Q7 | Does `autoship` live in this `utils` repo, its own repo, or inside the app repo? | **Its own repo** — it is a tool, not a skill, and will outgrow both |

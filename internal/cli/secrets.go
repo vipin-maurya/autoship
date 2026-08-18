@@ -28,9 +28,10 @@ const secretsUsage = `usage: autoship secrets <set|list|delete> [name] [flags]
   --from-file <path>   with set: read the secret from a file (used for the
                        Play service-account JSON)
 
-Secrets are encrypted with DPAPI, scoped to the current Windows user, and are
-never passed as command-line arguments — an argument would land in the shell
-history and in the process list.
+Secrets are encrypted at rest with the OS's native secret store — DPAPI on
+Windows, Keychain on macOS, the Secret Service (secret-tool) on Linux — and
+are never passed as command-line arguments — an argument would land in the
+shell history and in the process list.
 
 Well-known names: ` + secrets.PlayServiceAccount + `, ` + secrets.KeystorePassword + `, ` + secrets.KeyAliasPassword + `
 `

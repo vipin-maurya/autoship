@@ -24,7 +24,7 @@ const (
 // testable on either platform (plan A4).
 func wrapper(goos string) string {
 	if goos == "windows" {
-		return "gradlew.bat"
+		return `.\gradlew.bat`
 	}
 	return "./gradlew"
 }

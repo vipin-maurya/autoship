@@ -9,13 +9,17 @@ import (
 	"testing"
 )
 
+// skipIfUnsupported probes the platform's secret store the same way Set
+// would. Every supported OS (windows, darwin, linux) is expected to have one
+// wired up in CI; a bare ErrUnsupported (e.g. secret-tool missing locally)
+// skips rather than fails, but any other error is a real bug.
 func skipIfUnsupported(t *testing.T) {
 	t.Helper()
-	if runtime.GOOS != "windows" {
-		if _, err := protect([]byte("probe")); !errors.Is(err, ErrUnsupported) {
-			t.Fatalf("protect on %s = %v, want ErrUnsupported", runtime.GOOS, err)
+	if _, err := protect([]byte("probe")); err != nil {
+		if errors.Is(err, ErrUnsupported) {
+			t.Skipf("no secret store available on %s: %v", runtime.GOOS, err)
 		}
-		t.Skipf("DPAPI is unavailable on %s", runtime.GOOS)
+		t.Fatalf("protect probe failed unexpectedly on %s: %v", runtime.GOOS, err)
 	}
 }
 

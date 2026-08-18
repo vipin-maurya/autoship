@@ -1,11 +1,11 @@
 repo:
-  path: C:\Users\vm899\repos\ExpenseTracker
+  path: C:\Users\you\repos\MyAndroidApp
   branch: main
   remote: origin
 
 app:
   module: ":app"
-  package: com.zeta.expensetracker
+  package: com.example.myapp
   gradle_file: app/build.gradle.kts
 
 gradle:
@@ -24,7 +24,7 @@ play:
   update_listing_on: minor # never | minor | any
 
 artifacts:
-  root: ${USERPROFILE}\Documents\ExpenseTracker
+  root: ${USERPROFILE}\Documents\MyAndroidApp
   screenshots_from: docs/release/screenshots
 
 notes:

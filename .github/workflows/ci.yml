@@ -1,0 +1,51 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, macos-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      # The Linux secrets backend (internal/secrets/dpapi_linux.go) shells out
+      # to secret-tool, which talks to a Secret Service provider over D-Bus.
+      # ubuntu-latest has neither running by default, so this spins up an
+      # unlocked gnome-keyring against a private D-Bus session bus, purely so
+      # TestStore_RoundTrip et al. have something real to encrypt against.
+      - name: Set up gnome-keyring (Linux secrets backend)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gnome-keyring dbus-x11 libsecret-tools
+
+          eval "$(dbus-launch --sh-syntax)"
+          echo "DBUS_SESSION_BUS_ADDRESS=$DBUS_SESSION_BUS_ADDRESS" >> "$GITHUB_ENV"
+
+          mkdir -p "$HOME/.local/share/keyrings"
+          eval "$(printf '\n' | gnome-keyring-daemon --unlock --start --components=secrets)"
+          echo "GNOME_KEYRING_CONTROL=$GNOME_KEYRING_CONTROL" >> "$GITHUB_ENV"
+
+      - name: go vet
+        run: go vet ./...
+
+      - name: go build
+        run: go build ./cmd/autoship
+
+      # git is needed by internal/gitrepo's tests.
+      - name: go test
+        run: go test ./... -race

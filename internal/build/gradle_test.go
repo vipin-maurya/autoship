@@ -86,7 +86,7 @@ func TestGradleStage_AppendsExtraArgs(t *testing.T) {
 }
 
 func TestWrapper(t *testing.T) {
-	if got := wrapper("windows"); got != "gradlew.bat" {
+	if got := wrapper("windows"); got != `.\gradlew.bat` {
 		t.Errorf("wrapper(windows) = %q", got)
 	}
 	if got := wrapper("linux"); got != "./gradlew" {

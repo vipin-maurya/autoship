@@ -102,7 +102,7 @@ func TestPublish_DeletesEditOnFailure(t *testing.T) {
 			cfg.UpdateListingOn = config.ListingAny
 
 			req := patchRequest()
-			req.Listing = &Listing{Title: "ExpenseTracker"}
+			req.Listing = &Listing{Title: "MyAndroidApp"}
 			req.Screenshots = []string{"a.png"}
 
 			err := (Publisher{Client: f, Cfg: cfg}).Publish(context.Background(), req)

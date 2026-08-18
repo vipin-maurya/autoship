@@ -39,7 +39,7 @@
 .EXAMPLE
     powershell -File scripts/register-task.ps1 `
         -ExePath C:\tools\autoship.exe `
-        -ConfigPath C:\Users\vm899\repos\ExpenseTracker\autoship.yaml -WhatIf
+        -ConfigPath C:\Users\you\repos\MyAndroidApp\autoship.yaml -WhatIf
 #>
 [CmdletBinding(SupportsShouldProcess = $true)]
 param(

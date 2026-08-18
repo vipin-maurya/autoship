@@ -113,7 +113,7 @@ func newFixture(t *testing.T) *fixture {
 	writeFile(t, filepath.Join(origin, "docs", "release", "notes", "1.0.5.txt"),
 		"Faster search and fewer duplicate merchants.\n")
 	writeFile(t, filepath.Join(origin, "docs", "release", "play_store_listing.md"),
-		"## Store Listing Details\n- **App Name**: ExpenseTracker\n- **Short Description**: Local expense tracking.\n- **Full Description**: On-device personal finance.\n")
+		"## Store Listing Details\n- **App Name**: MyAndroidApp\n- **Short Description**: Local expense tracking.\n- **Full Description**: On-device personal finance.\n")
 	writeFile(t, filepath.Join(origin, "docs", "release", "screenshots", "screenshot-01-home.png"), "png")
 
 	git(t, root, "init", "--initial-branch=main", origin)
@@ -136,7 +136,7 @@ func newFixture(t *testing.T) *fixture {
   remote: origin
 app:
   module: ":app"
-  package: com.zeta.expensetracker
+  package: com.example.myapp
   gradle_file: app/build.gradle.kts
 gradle:
   unit_tests: ":app:testDebugUnitTest"

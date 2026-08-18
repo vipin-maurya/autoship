@@ -41,8 +41,9 @@ var defaultDeps = deps{
 	},
 }
 
-// DefaultRoot is where autoship keeps state, logs and secrets:
-// %LOCALAPPDATA%\autoship on Windows.
+// DefaultRoot is where autoship keeps state, logs and secrets: the OS user
+// cache dir plus "autoship" — %LOCALAPPDATA%\autoship on Windows,
+// ~/Library/Caches/autoship on macOS, ~/.cache/autoship on Linux.
 func DefaultRoot() string {
 	if dir, err := os.UserCacheDir(); err == nil {
 		return filepath.Join(dir, "autoship")

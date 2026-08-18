@@ -1,7 +1,9 @@
 // Package secrets stores credentials encrypted at rest, scoped to the current
-// Windows user. A scheduled task runs non-interactively with a stored
-// credential, so neither the Play service-account key nor the keystore
-// passwords may sit in plaintext anywhere (spec §8).
+// OS user via the platform's native secret store (DPAPI on Windows, Keychain
+// on macOS, the Secret Service on Linux). A scheduled task runs
+// non-interactively with a stored credential, so neither the Play
+// service-account key nor the keystore passwords may sit in plaintext
+// anywhere (spec §8).
 package secrets
 
 import (
@@ -24,8 +26,9 @@ const (
 )
 
 // ErrUnsupported reports that this platform has no user-scoped encryption
-// available.
-var ErrUnsupported = errors.New("encrypted secret storage is only available on windows")
+// available, or that the native secret store it needs (e.g. secret-tool on
+// Linux) isn't installed or running.
+var ErrUnsupported = errors.New("no supported secret store is available on this platform")
 
 // ErrNotFound reports that no secret is stored under that name.
 var ErrNotFound = errors.New("secret not found")

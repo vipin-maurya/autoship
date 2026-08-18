@@ -14,7 +14,7 @@ func listingRequest(kind release.Kind, shots ...string) Request {
 	req := patchRequest()
 	req.Release.Kind = kind
 	req.Listing = &Listing{
-		Title:            "ExpenseTracker",
+		Title:            "MyAndroidApp",
 		ShortDescription: "Modern, privacy-first local expense tracking.",
 		FullDescription:  "Comprehensive personal finance app operating 100% on-device.",
 	}
@@ -51,7 +51,7 @@ func TestPublish_MinorUpdatesListing(t *testing.T) {
 	if got := f.countOf("UploadImage"); got != len(shots) {
 		t.Errorf("uploaded %d images, want %d", got, len(shots))
 	}
-	if len(f.lists) != 1 || f.lists[0].Title != "ExpenseTracker" {
+	if len(f.lists) != 1 || f.lists[0].Title != "MyAndroidApp" {
 		t.Errorf("listing = %+v, want the request's listing", f.lists)
 	}
 	if f.lists[0].Language != DefaultLocale {
@@ -90,7 +90,7 @@ func TestParseListingFile(t *testing.T) {
 	content := `# Play Store Listing
 
 ## Store Listing Details
-- **App Name**: ExpenseTracker
+- **App Name**: MyAndroidApp
 - **Short Description**: Modern, privacy-first local expense tracking and automated SMS analytics.
 - **Full Description**: Comprehensive personal finance app operating 100% on-device...
 
@@ -104,7 +104,7 @@ func TestParseListingFile(t *testing.T) {
 	if err != nil {
 		t.Fatalf("ParseListingFile: %v", err)
 	}
-	if l.Title != "ExpenseTracker" {
+	if l.Title != "MyAndroidApp" {
 		t.Errorf("Title = %q", l.Title)
 	}
 	if l.ShortDescription != "Modern, privacy-first local expense tracking and automated SMS analytics." {
