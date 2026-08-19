@@ -91,6 +91,13 @@ publish `1.0.6-SNAPSHOT` to Play while tagging `v1.0.6`. Committing the pin also
 S6 creates points at a commit whose checkout reproduces what shipped; a dry run writes the same
 file so its build is representative, then restores it.
 
+That pin is deliberately a second commit rather than being squashed or amended into S6's bump.
+The two commits differ in exactly the two lines the release turns over, and one commit cannot
+hold both values: squashing them puts the next `-SNAPSHOT` in the tagged tree, and amending
+leaves the tag pointing at a commit that is no longer an ancestor of the branch — invisible to
+`git log` and `git describe`. A repo that does not use `-SNAPSHOT` produces one commit anyway,
+since there is nothing to pin.
+
 **The critical design property is S0.** The overwhelmingly common invocation is "nothing changed."
 That path must never start a JVM, never touch Gradle, and never allocate meaningfully. It is a
 `git fetch` plus a string comparison.
