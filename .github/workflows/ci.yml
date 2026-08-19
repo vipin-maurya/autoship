@@ -36,8 +36,14 @@ jobs:
           eval "$(dbus-launch --sh-syntax)"
           echo "DBUS_SESSION_BUS_ADDRESS=$DBUS_SESSION_BUS_ADDRESS" >> "$GITHUB_ENV"
 
+          # --unlock on its own creates the login keyring (and its default
+          # collection) the first time it's run, which is what registers
+          # "/org/freedesktop/secrets/collection/login". Folding --start
+          # into that same call skips that step and leaves secret-tool with
+          # no default collection to store into, so it's a separate call.
           mkdir -p "$HOME/.local/share/keyrings"
-          eval "$(printf '\n' | gnome-keyring-daemon --unlock --start --components=secrets)"
+          eval "$(printf '\n' | gnome-keyring-daemon --unlock)"
+          eval "$(printf '\n' | gnome-keyring-daemon --start --components=secrets)"
           echo "GNOME_KEYRING_CONTROL=$GNOME_KEYRING_CONTROL" >> "$GITHUB_ENV"
 
       - name: go vet
