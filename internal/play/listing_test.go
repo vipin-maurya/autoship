@@ -133,3 +133,28 @@ func TestParseListingFile_Missing(t *testing.T) {
 		t.Fatal("ParseListingFile on a missing file = nil error, want one")
 	}
 }
+
+func TestParseListingFile_HeadingBlocks(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "about.md")
+	content := "# About the app\n\n" +
+		"## App name\n\n*Play Console field: \"App name\".*\n\n```text\nExpenseTracker\n```\n\n" +
+		"## Short description\n\n```text\n100% private expense tracking.\n```\n\n" +
+		"## Full description\n\n```text\nFirst paragraph.\n\nSecond paragraph.\n```\n\n" +
+		"## Notes\n\n```text\nNot a listing field.\n```\n"
+	if err := os.WriteFile(path, []byte(content), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	l, err := ParseListingFile(path)
+	if err != nil {
+		t.Fatalf("ParseListingFile: %v", err)
+	}
+	if l.Title != "ExpenseTracker" {
+		t.Errorf("Title = %q", l.Title)
+	}
+	if l.ShortDescription != "100% private expense tracking." {
+		t.Errorf("ShortDescription = %q", l.ShortDescription)
+	}
+	if want := "First paragraph.\n\nSecond paragraph."; l.FullDescription != want {
+		t.Errorf("FullDescription = %q, want %q", l.FullDescription, want)
+	}
+}

@@ -144,6 +144,20 @@ func Execute(ctx context.Context, d Deps) (Result, error) {
 
 	st.Status = state.StatusIdle
 	state.ClearHalt(&st)
+	if d.DryRun {
+		// A dry run publishes nothing, so the commit it examined is still
+		// releasable. Recording it would make the real run that follows report
+		// "no change" and skip the release entirely.
+		st.LastRunAt = d.now()
+		if err := d.Store.Save(st); err != nil {
+			return res, fmt.Errorf("save state: %w", err)
+		}
+		log.Info("dry run complete; commit left unprocessed",
+			"version", res.Release.Name, "versionCode", res.Release.Code,
+			"kind", res.Release.Kind.String())
+		return res, nil
+	}
+
 	st.LastProcessedSHA = head
 	if res.Post.Pushed && res.Post.CommitSHA != "" {
 		// S6 pushed autoship's own bump commit, so that commit is now the tip
@@ -152,10 +166,8 @@ func Execute(ctx context.Context, d Deps) (Result, error) {
 		// immediately, since no one has written notes for the next version.
 		st.LastProcessedSHA = res.Post.CommitSHA
 	}
-	if !d.DryRun {
-		st.LastPublishedVersionCode = res.Release.Code
-		st.LastPublishedVersionName = res.Release.Name
-	}
+	st.LastPublishedVersionCode = res.Release.Code
+	st.LastPublishedVersionName = res.Release.Name
 	st.LastRunAt = d.now()
 	if err := d.Store.Save(st); err != nil {
 		return res, fmt.Errorf("save state: %w", err)

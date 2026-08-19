@@ -74,10 +74,12 @@ func (c *googleClient) UploadBundle(ctx context.Context, editID, path string) (i
 	return code, err
 }
 
-var langTagPattern = regexp.MustCompile(`(?s)^\s*<([a-zA-Z]{2,3}(?:-[a-zA-Z0-9]+)*)>\s*(.*?)\s*</\1>\s*$`)
+// Go's regexp engine has no backreferences, so the closing tag is captured
+// separately and compared with the opening one below.
+var langTagPattern = regexp.MustCompile(`(?s)^\s*<([a-zA-Z]{2,3}(?:-[a-zA-Z0-9]+)*)>\s*(.*?)\s*</([a-zA-Z]{2,3}(?:-[a-zA-Z0-9]+)*)>\s*$`)
 
 func cleanNotes(text string) string {
-	if m := langTagPattern.FindStringSubmatch(text); m != nil {
+	if m := langTagPattern.FindStringSubmatch(text); m != nil && strings.EqualFold(m[1], m[3]) {
 		return strings.TrimSpace(m[2])
 	}
 	return strings.TrimSpace(text)

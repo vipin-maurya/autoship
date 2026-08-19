@@ -61,8 +61,33 @@ func (p Publisher) applyListing(ctx context.Context, editID, locale string, req 
 // skill writes into docs/release/play_store_listing.md.
 var labelled = regexp.MustCompile(`^\s*[-*]?\s*\*\*([^*]+)\*\*\s*:\s*(.*)$`)
 
-// ParseListingFile reads a play_store_listing.md and extracts the fields Play
-// accepts. Missing fields are left empty rather than being invented.
+// heading matches the "## Short description" shape of docs/release/about.md,
+// where the field's value is the fenced block that follows the heading.
+var heading = regexp.MustCompile(`^\s*#{1,6}\s+(.+?)\s*$`)
+
+// fence matches the opening or closing line of a fenced code block.
+var fence = regexp.MustCompile("^[ 	]*(`{3}|~{3})")
+
+// listingField maps a label, however it was written, onto the Play field it
+// names. An unrecognised label yields "" and is ignored.
+func listingField(label string) string {
+	switch strings.ToLower(strings.TrimSpace(label)) {
+	case "app name", "title", "app title":
+		return "title"
+	case "short description":
+		return "short"
+	case "full description", "description":
+		return "full"
+	}
+	return ""
+}
+
+// ParseListingFile reads a store listing markdown file and extracts the fields
+// Play accepts. Missing fields are left empty rather than being invented.
+//
+// Two shapes are understood: the inline "- **App Name**: value" form, and an
+// "## App name" heading whose value is the first fenced block beneath it. Only
+// the latter can carry a multi-line full description.
 func ParseListingFile(path string) (Listing, error) {
 	f, err := os.Open(path)
 	if err != nil {
@@ -71,29 +96,55 @@ func ParseListingFile(path string) (Listing, error) {
 	defer f.Close()
 
 	l := Listing{Language: DefaultLocale}
-	sc := bufio.NewScanner(f)
-	sc.Buffer(make([]byte, 0, 64*1024), 1<<20)
-	for sc.Scan() {
-		m := labelled.FindStringSubmatch(sc.Text())
-		if m == nil {
-			continue
-		}
-		value := strings.TrimSpace(m[2])
+	set := func(field, value string) {
+		value = strings.TrimSpace(value)
 		if value == "" {
-			continue
+			return
 		}
-		switch strings.ToLower(strings.TrimSpace(m[1])) {
-		case "app name", "title", "app title":
+		switch field {
+		case "title":
 			if l.Title == "" {
 				l.Title = value
 			}
-		case "short description":
+		case "short":
 			if l.ShortDescription == "" {
 				l.ShortDescription = value
 			}
-		case "full description", "description":
+		case "full":
 			if l.FullDescription == "" {
 				l.FullDescription = value
+			}
+		}
+	}
+
+	// pending names the field of the last heading seen; it is cleared once the
+	// fenced block beneath it is consumed, or another heading supersedes it.
+	var pending string
+	var block []string
+	inBlock := false
+
+	sc := bufio.NewScanner(f)
+	sc.Buffer(make([]byte, 0, 64*1024), 1<<20)
+	for sc.Scan() {
+		line := sc.Text()
+
+		switch {
+		case inBlock:
+			if fence.MatchString(line) {
+				set(pending, strings.Join(block, "\n"))
+				pending, block, inBlock = "", nil, false
+				continue
+			}
+			block = append(block, line)
+		case pending != "" && fence.MatchString(line):
+			inBlock = true
+		default:
+			if m := labelled.FindStringSubmatch(line); m != nil {
+				set(listingField(m[1]), m[2])
+				continue
+			}
+			if m := heading.FindStringSubmatch(line); m != nil {
+				pending = listingField(m[1])
 			}
 		}
 	}

@@ -322,6 +322,16 @@ func TestDryRun_SkipsPublishAndPostRelease(t *testing.T) {
 	if st.LastPublishedVersionCode != 0 {
 		t.Errorf("dry run recorded a published version code: %d", st.LastPublishedVersionCode)
 	}
+	// ...nor consume the commit, or the real run after it would see no change.
+	if st.LastProcessedSHA != "" {
+		t.Errorf("dry run marked %s processed", st.LastProcessedSHA)
+	}
+	if code, _, stderr := fx.run(false); code != 0 {
+		t.Fatalf("run after a dry run = %d, stderr:\n%s", code, stderr)
+	}
+	if !fx.Play.did("Commit") {
+		t.Errorf("run after a dry run published nothing: %v", fx.Play.calls)
+	}
 }
 
 func TestRun_FullReleasePublishesAndRecordsState(t *testing.T) {
