@@ -534,3 +534,65 @@ func TestRun_StateJSONShapeMatchesTheSpec(t *testing.T) {
 		}
 	}
 }
+
+// TestRun_TagReproducesWhatShipped covers the defect where the bundle was built
+// from the -SNAPSHOT version: Gradle stamps the file's versionName into the
+// manifest, so the file has to hold the released version at build time, and the
+// tagged commit has to be the one that held it.
+func TestRun_TagReproducesWhatShipped(t *testing.T) {
+	fx := newFixture(t)
+
+	if code, _, stderr := fx.run(false); code != 0 {
+		t.Fatalf("run = %d, stderr:\n%s", code, stderr)
+	}
+
+	tagged := git(t, fx.Clone, "show", "v1.0.5:app/build.gradle.kts")
+	if !strings.Contains(tagged, `versionName = "1.0.5"`) {
+		t.Errorf("tag v1.0.5 does not carry the released version:\n%s", tagged)
+	}
+	if strings.Contains(tagged, "SNAPSHOT") {
+		t.Errorf("tag v1.0.5 still carries a snapshot version:\n%s", tagged)
+	}
+	if !strings.Contains(tagged, "versionCode = 8") {
+		t.Errorf("tag v1.0.5 does not carry the released versionCode:\n%s", tagged)
+	}
+
+	// The pin is its own commit so the bump that follows can be another one.
+	subjects := git(t, fx.Clone, "log", "--format=%s", "-2")
+	if want := "chore(release): 1.0.5, bump to 1.0.6-SNAPSHOT\nchore(release): 1.0.5"; subjects != want {
+		t.Errorf("commit subjects =\n%s\nwant\n%s", subjects, want)
+	}
+
+	// Development continues on the next snapshot, as before.
+	head, err := os.ReadFile(filepath.Join(fx.Clone, "app", "build.gradle.kts"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(string(head), `versionName = "1.0.6-SNAPSHOT"`) {
+		t.Errorf("HEAD is not on the next snapshot:\n%s", head)
+	}
+}
+
+// TestDryRun_LeavesTheVersionAlone proves the pin is undone when nothing ships.
+func TestDryRun_LeavesTheVersionAlone(t *testing.T) {
+	fx := newFixture(t)
+	before := git(t, fx.Clone, "rev-parse", "HEAD")
+
+	if code, _, stderr := fx.run(true); code != 0 {
+		t.Fatalf("dry-run = %d, stderr:\n%s", code, stderr)
+	}
+
+	gradle, err := os.ReadFile(filepath.Join(fx.Clone, "app", "build.gradle.kts"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(string(gradle), `versionName = "1.0.5-SNAPSHOT"`) {
+		t.Errorf("dry run left the version pinned:\n%s", gradle)
+	}
+	if after := git(t, fx.Clone, "rev-parse", "HEAD"); after != before {
+		t.Error("dry run committed the pinned version")
+	}
+	if status := git(t, fx.Clone, "status", "--porcelain", "app/build.gradle.kts"); status != "" {
+		t.Errorf("dry run left the working tree dirty: %q", status)
+	}
+}

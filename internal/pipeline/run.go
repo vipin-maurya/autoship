@@ -197,6 +197,17 @@ func (d Deps) release(ctx context.Context, st *state.State, res *Result) error {
 	res.Release = rel
 	log.Info("preflight passed", "version", rel.Name, "versionCode", rel.Code, "kind", rel.Kind.String())
 
+	// Take the -SNAPSHOT off the Gradle file before anything builds, so the
+	// bundle carries the version being released rather than the one being
+	// developed.
+	pinned, err := d.pinVersion(rel)
+	if pinned && d.DryRun {
+		defer d.unpinVersion()
+	}
+	if err != nil {
+		return err
+	}
+
 	// S2 — tests, lint, bundle.
 	gradle := build.GradleStage{Runner: d.Runner, Dir: cfg.Repo.Path, Cfg: cfg.Gradle}
 	if err := gradle.Execute(ctx); err != nil {

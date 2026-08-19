@@ -72,6 +72,8 @@ Task Scheduler (every N min)
         ▼
    S1 preflight    version, keystore, versionCode sanity
         ▼
+        pin         strip -SNAPSHOT in the Gradle file, commit
+        ▼
    S2 build+test   gradlew test → lint → bundleRelease
         ▼
    S3 ui validate  §6
@@ -82,6 +84,12 @@ Task Scheduler (every N min)
         ▼
    S6 post         tag, bump to next -SNAPSHOT, commit, push
 ```
+
+The pin between S1 and S2 exists because Gradle stamps whatever `versionName` the file
+declares into the manifest. Stripping `-SNAPSHOT` only in autoship's own release record would
+publish `1.0.6-SNAPSHOT` to Play while tagging `v1.0.6`. Committing the pin also means the tag
+S6 creates points at a commit whose checkout reproduces what shipped; a dry run writes the same
+file so its build is representative, then restores it.
 
 **The critical design property is S0.** The overwhelmingly common invocation is "nothing changed."
 That path must never start a JVM, never touch Gradle, and never allocate meaningfully. It is a

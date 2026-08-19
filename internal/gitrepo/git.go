@@ -9,6 +9,7 @@ import (
 	"errors"
 	"fmt"
 	"os/exec"
+	"path/filepath"
 	"strings"
 )
 
@@ -193,5 +194,12 @@ func PullRebase(dir, remote, branch string) error {
 			return err
 		}
 	}
+	return err
+}
+
+// RestoreFile discards the uncommitted changes to one tracked path, so a run
+// that wrote to the working tree without committing leaves nothing behind.
+func RestoreFile(dir, path string) error {
+	_, err := run(dir, "checkout", "--", filepath.ToSlash(path))
 	return err
 }
